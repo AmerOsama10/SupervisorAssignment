@@ -1,0 +1,13 @@
+.DS_Store
+**/.DS_Store
+/target/
+/dist/
+*.jar
+*.class
+*.log
+/.idea/
+/.vscode/
+*.iml
+*.app/
+/test-excels/*.xlsx
+/target/installer/**
