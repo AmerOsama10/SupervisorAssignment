@@ -96,7 +96,7 @@ public class LargeExcelInputsGeneratorTest {
 						if (count >= numSessions) break;
 						String id = "S" + (count + 1);
 						String name = subjects.get(subjIdx % subjects.size()); subjIdx++;
-						addSubjectRow(subjectsSheet, r++, id, name, building, "صباحي", arabicDay, d.toString(), "10:00", "12:00", 2, "ملاحظ");
+						addSubjectRow(subjectsSheet, r++, id, name, building, "صباحي", arabicDay, d.toString(), "10:00", "12:00", 2);
 						count++;
 					}
 				}
@@ -106,7 +106,7 @@ public class LargeExcelInputsGeneratorTest {
 						if (count >= numSessions) break;
 						String id = "S" + (count + 1);
 						String name = subjects.get(subjIdx % subjects.size()); subjIdx++;
-						addSubjectRow(subjectsSheet, r++, id, name, building, "مسائي", arabicDay, d.toString(), "01:00", "03:00", 2, "ملاحظ");
+						addSubjectRow(subjectsSheet, r++, id, name, building, "مسائي", arabicDay, d.toString(), "01:00", "03:00", 2);
 						count++;
 					}
 				}
@@ -179,7 +179,7 @@ public class LargeExcelInputsGeneratorTest {
 				String from = (i % 2 == 0) ? "10:00" : "01:00";
 				String to = (i % 2 == 0) ? "12:00" : "03:00";
 				int required = 2;
-				addSubjectRow(subjectsSheet, r++, id, name, building, period, arabicDay, date.toString(), from, to, required, "ملاحظ");
+				addSubjectRow(subjectsSheet, r++, id, name, building, period, arabicDay, date.toString(), from, to, required);
 			}
 
 			// Supervisors: 85 names => first 10 floors (100%), 5 maintenance (100%), remaining 70 invigilators (100%).
@@ -209,7 +209,7 @@ public class LargeExcelInputsGeneratorTest {
 		}
 	}
 
-	private static void addSubjectRow(Sheet sheet, int rowIdx, String id, String subject, String building, String period, String day, String date, String from, String to, int req, String type) {
+	private static void addSubjectRow(Sheet sheet, int rowIdx, String id, String subject, String building, String period, String day, String date, String from, String to, int req) {
 		Row row = sheet.createRow(rowIdx);
 		row.createCell(0).setCellValue(id);
 		row.createCell(1).setCellValue(subject);
@@ -220,7 +220,6 @@ public class LargeExcelInputsGeneratorTest {
 		row.createCell(6).setCellValue(from);
 		row.createCell(7).setCellValue(to);
 		row.createCell(8).setCellValue(req);
-		row.createCell(9).setCellValue(type);
 	}
 
 	private static void addSupervisorRow(Sheet sheet, int rowIdx, String name, String days, int pct, String role, String excludedSubjects) {

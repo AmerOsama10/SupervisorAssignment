@@ -44,7 +44,7 @@ public class TemplateGenerator {
 		note.createCell(0).setCellValue("أدخل الجلسات أدناه. اختر الفترة (صباحي/مسائي)، اليوم من قائمة الأيام. الوقت بصيغة 12 ساعة (مثال 01:00).");
 
 		Row header = sheet.createRow(r++);
-		String[] cols = new String[]{"المعرف","المادة","المبنى","الفترة","اليوم","التاريخ","من","إلى","عدد_الملاحظين","نوع"};
+		String[] cols = new String[]{"المعرف","المادة","المبنى","الفترة","اليوم","التاريخ","من","إلى","عدد_الملاحظين"};
 		for (int c = 0; c < cols.length; c++) header.createCell(c).setCellValue(cols[c]);
 		sheet.createFreezePane(0, r);
 
@@ -57,19 +57,16 @@ public class TemplateGenerator {
 		CellRangeAddressList periodAddr = new CellRangeAddressList(2, 2000, 3, 3);
 		sheet.addValidationData(dvHelper.createValidation(periodConstraint, periodAddr));
 
-		DataValidationConstraint typeConstraint = dvHelper.createExplicitListConstraint(new String[]{"ملاحظ","مشرف دور","عامل"});
-		CellRangeAddressList typeAddr = new CellRangeAddressList(2, 2000, 9, 9);
-		sheet.addValidationData(dvHelper.createValidation(typeConstraint, typeAddr));
 
 		sheet.setAutoFilter(new org.apache.poi.ss.util.CellRangeAddress(1, 1, 0, cols.length-1));
 
 		// Prefill example rows (like a sample) to guide users
 		int start = r;
 		java.time.LocalDate sat = next(java.time.DayOfWeek.SATURDAY);
-		addSubjectRow(sheet.createRow(start++), "S1", "رياضيات عامة 101", "المبنى الرابع - الدور الثاني", "صباحي", "السبت", sat.toString(), "10:00", "12:00", 2, "ملاحظ");
-		addSubjectRow(sheet.createRow(start++), "S2", "كيمياء عامة 101", "المبنى الخامس - الدور الثالث", "مسائي", "السبت", sat.toString(), "01:00", "03:00", 2, "ملاحظ");
-		addSubjectRow(sheet.createRow(start++), "S3", "لغة عربية 101", "المبنى الرابع - الدور الثاني", "صباحي", "الأحد", nextFor("الأحد").toString(), "10:00", "12:00", 2, "ملاحظ");
-		addSubjectRow(sheet.createRow(start++), "S4", "هندسة برمجيات", "المبنى الجديد - الدور الأول", "مسائي", "الاثنين", nextFor("الاثنين").toString(), "01:00", "03:00", 2, "ملاحظ");
+		addSubjectRow(sheet.createRow(start++), "S1", "رياضيات عامة 101", "المبنى الرابع - الدور الثاني", "صباحي", "السبت", sat.toString(), "10:00", "12:00", 2);
+		addSubjectRow(sheet.createRow(start++), "S2", "كيمياء عامة 101", "المبنى الخامس - الدور الثالث", "مسائي", "السبت", sat.toString(), "01:00", "03:00", 2);
+		addSubjectRow(sheet.createRow(start++), "S3", "لغة عربية 101", "المبنى الرابع - الدور الثاني", "صباحي", "الأحد", nextFor("الأحد").toString(), "10:00", "12:00", 2);
+		addSubjectRow(sheet.createRow(start++), "S4", "هندسة برمجيات", "المبنى الجديد - الدور الأول", "مسائي", "الاثنين", nextFor("الاثنين").toString(), "01:00", "03:00", 2);
 	}
 
 	private void createSupervisorsSheetArabic(XSSFWorkbook wb) {
@@ -98,7 +95,7 @@ public class TemplateGenerator {
 		addSupRow(sheet.createRow(start++), "عبدالله محمد", "السبت, الأحد, الاثنين, الثلاثاء, الأربعاء, الخميس", 100, "عامل", "");
 	}
 
-	private void addSubjectRow(Row row, String id, String subject, String building, String period, String day, String date, String from, String to, int req, String type) {
+	private void addSubjectRow(Row row, String id, String subject, String building, String period, String day, String date, String from, String to, int req) {
 		row.createCell(0).setCellValue(id);
 		row.createCell(1).setCellValue(subject);
 		row.createCell(2).setCellValue(building);
@@ -108,7 +105,6 @@ public class TemplateGenerator {
 		row.createCell(6).setCellValue(from);
 		row.createCell(7).setCellValue(to);
 		row.createCell(8).setCellValue(req);
-		row.createCell(9).setCellValue(type);
 	}
 
 	private void addSupRow(Row row, String name, String days, int pct, String role, String excludedSubjects) {

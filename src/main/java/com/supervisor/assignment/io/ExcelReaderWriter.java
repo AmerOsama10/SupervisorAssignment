@@ -114,13 +114,6 @@ public class ExcelReaderWriter {
 			s.setNotes(null);
 			s.setBuilding(isBlank(building) ? null : building.trim());
 			s.setRequiredRole(RoleType.INVIGILATOR);
-			
-			// Read role type column
-			String roleTypeStr = getFirstExisting(row, idx, "نوع", "Type", "Role Type");
-			if (!isBlank(roleTypeStr)) {
-				s.setRoleType(RoleType.fromString(roleTypeStr));
-			}
-			
 			result.add(s);
 		}
 		if (result.isEmpty()) throw new IllegalArgumentException("No sessions found in Subjects");

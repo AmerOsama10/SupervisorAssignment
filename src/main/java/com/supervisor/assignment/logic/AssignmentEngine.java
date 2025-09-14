@@ -14,6 +14,7 @@ public class AssignmentEngine {
 			throw new IllegalArgumentException("Sessions and supervisors must not be null");
 		}
 		// Build floor-supervisor slots per (date, period, building)
+		// المشرف الدور مسؤول عن المباني/الأدوار
 		List<SubjectSession> floorSlots = new ArrayList<>();
 		Map<String, List<SubjectSession>> byKey = sessions.stream()
 			.filter(s -> s.getDate() != null && s.getPeriod() != null && s.getBuilding() != null)
@@ -465,7 +466,7 @@ public class AssignmentEngine {
 			return maintenanceSlots;
 		}
 		
-		// Get unique dates from sessions (excluding Friday)
+		// العامل عامل تنظيمي في الحوش - واحد كل يوم للمدرسة كلها
 		Set<LocalDate> workingDates = sessions.stream()
 			.map(SubjectSession::getDate)
 			.filter(date -> date != null && date.getDayOfWeek() != java.time.DayOfWeek.FRIDAY)
@@ -473,21 +474,19 @@ public class AssignmentEngine {
 		
 		int maintenanceCounter = 1;
 		for (LocalDate date : workingDates) {
-			// Create one primary and one backup maintenance slot per day
-			for (int i = 0; i < 2; i++) {
-				SubjectSession maintenanceSlot = new SubjectSession();
-				maintenanceSlot.setId("M-" + (maintenanceCounter++));
-				maintenanceSlot.setSubjectName("عامل صيانة - " + date.toString());
-				maintenanceSlot.setDay(mapJavaDayToEnum(date.getDayOfWeek()));
-				maintenanceSlot.setDate(date);
-				maintenanceSlot.setFrom(LocalTime.of(8, 0)); // 8 AM to 4 PM
-				maintenanceSlot.setTo(LocalTime.of(16, 0));
-				maintenanceSlot.setSupervisorsRequired(1);
-				maintenanceSlot.setBuilding("جميع المباني");
-				maintenanceSlot.setPeriod(PeriodOfDay.MORNING);
-				maintenanceSlot.setRequiredRole(RoleType.MAINTENANCE);
-				maintenanceSlots.add(maintenanceSlot);
-			}
+			// Create one maintenance worker per day for the whole school
+			SubjectSession maintenanceSlot = new SubjectSession();
+			maintenanceSlot.setId("M-" + (maintenanceCounter++));
+			maintenanceSlot.setSubjectName("عامل تنظيمي - " + date.toString());
+			maintenanceSlot.setDay(mapJavaDayToEnum(date.getDayOfWeek()));
+			maintenanceSlot.setDate(date);
+			maintenanceSlot.setFrom(LocalTime.of(8, 0)); // 8 AM to 4 PM
+			maintenanceSlot.setTo(LocalTime.of(16, 0));
+			maintenanceSlot.setSupervisorsRequired(1);
+			maintenanceSlot.setBuilding("الحوش/المدرسة كلها");
+			maintenanceSlot.setPeriod(PeriodOfDay.MORNING);
+			maintenanceSlot.setRequiredRole(RoleType.MAINTENANCE);
+			maintenanceSlots.add(maintenanceSlot);
 		}
 		
 		return maintenanceSlots;
