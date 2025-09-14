@@ -114,6 +114,13 @@ public class ExcelReaderWriter {
 			s.setNotes(null);
 			s.setBuilding(isBlank(building) ? null : building.trim());
 			s.setRequiredRole(RoleType.INVIGILATOR);
+			
+			// Read role type column
+			String roleTypeStr = getFirstExisting(row, idx, "نوع", "Type", "Role Type");
+			if (!isBlank(roleTypeStr)) {
+				s.setRoleType(RoleType.fromString(roleTypeStr));
+			}
+			
 			result.add(s);
 		}
 		if (result.isEmpty()) throw new IllegalArgumentException("No sessions found in Subjects");
@@ -155,10 +162,21 @@ public class ExcelReaderWriter {
 			s.setLoadPercentage(pct == null ? 100.0 : pct);
 			String roleStr = getFirstExisting(row, idx, "الوظيفة", "النوع", "Role");
 			if (!isBlank(roleStr)) {
-				String v = roleStr.trim();
-				if (v.equals("ملاحظ") || v.equalsIgnoreCase("INVIGILATOR")) s.setRole(RoleType.INVIGILATOR);
-				else if (v.equals("مشرف دور") || v.equalsIgnoreCase("FLOOR_SUPERVISOR")) s.setRole(RoleType.FLOOR_SUPERVISOR);
+				s.setRole(RoleType.fromString(roleStr));
 			}
+			
+			// Read excluded subjects column
+			String excludedSubjectsStr = getFirstExisting(row, idx, "المواد المستبعدة", "Excluded Subjects");
+			if (!isBlank(excludedSubjectsStr)) {
+				Set<String> excludedSubjects = new HashSet<>();
+				for (String subject : excludedSubjectsStr.split(",")) {
+					if (!isBlank(subject)) {
+						excludedSubjects.add(subject.trim());
+					}
+				}
+				s.setExcludedSubjects(excludedSubjects);
+			}
+			
 			result.add(s);
 		}
 		if (result.isEmpty()) throw new IllegalArgumentException("No supervisors found in Supervisors");

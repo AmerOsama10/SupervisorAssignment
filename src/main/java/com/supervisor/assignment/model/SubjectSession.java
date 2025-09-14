@@ -16,6 +16,7 @@ public class SubjectSession {
     private String building; // المبنى
     private PeriodOfDay period; // الفترة: صباحي/مسائي
     private RoleType requiredRole = RoleType.INVIGILATOR; // الدور المطلوب لهذه الجلسة
+    private RoleType roleType = RoleType.INVIGILATOR; // نوع الدور: ملاحظ/مشرف دور/عامل
 
     public String getId() {
         return id;
@@ -108,6 +109,14 @@ public class SubjectSession {
 
     public void setRequiredRole(RoleType requiredRole) {
         this.requiredRole = requiredRole;
+    }
+
+    public RoleType getRoleType() {
+        return roleType;
+    }
+
+    public void setRoleType(RoleType roleType) {
+        this.roleType = roleType;
     }
 
     @Override

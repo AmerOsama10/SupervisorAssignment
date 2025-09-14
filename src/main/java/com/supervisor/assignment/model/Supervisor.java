@@ -7,7 +7,8 @@ public class Supervisor {
     private Set<DayOfWeekEnum> availableDays = new HashSet<>();
     private Double maxHours; // optional (kept for backward-compat)
     private Double loadPercentage; // النسبة: 0..100
-    private RoleType role = RoleType.INVIGILATOR; // النوع: مشرف دور أو ملاحظ
+    private RoleType role = RoleType.INVIGILATOR; // النوع: مشرف دور أو ملاحظ أو عامل
+    private Set<String> excludedSubjects = new HashSet<>(); // المواد المستبعدة
 
     public String getName() {
         return name;
@@ -47,6 +48,14 @@ public class Supervisor {
 
     public void setRole(RoleType role) {
         this.role = role;
+    }
+
+    public Set<String> getExcludedSubjects() {
+        return excludedSubjects;
+    }
+
+    public void setExcludedSubjects(Set<String> excludedSubjects) {
+        this.excludedSubjects = excludedSubjects;
     }
 }
 

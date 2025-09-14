@@ -40,9 +40,13 @@ public class AssignmentEngine {
 			floorSlots.add(fs);
 		}
 
+		// Build maintenance staff daily assignments
+		List<SubjectSession> maintenanceSlots = createMaintenanceSlots(sessions, supervisors);
+		
 		List<SubjectSession> allSessions = new ArrayList<>();
 		allSessions.addAll(sessions);
 		allSessions.addAll(floorSlots);
+		allSessions.addAll(maintenanceSlots);
 
 		double invigilatorHoursNeeded = sessions.stream()
 			.mapToDouble(s -> s.getDurationHours() * Math.max(1, s.getSupervisorsRequired()))
@@ -52,7 +56,10 @@ public class AssignmentEngine {
 		double floorHoursNeeded = floorSlots.stream()
 			.mapToDouble(SubjectSession::getDurationHours)
 			.sum();
-		double totalHoursNeeded = invigilatorHoursNeeded + floorHoursNeeded;
+		double maintenanceHoursNeeded = maintenanceSlots.stream()
+			.mapToDouble(SubjectSession::getDurationHours)
+			.sum();
+		double totalHoursNeeded = invigilatorHoursNeeded + floorHoursNeeded + maintenanceHoursNeeded;
 		result.setTotalHoursNeeded(totalHoursNeeded);
 		double invLoadUnits = supervisors.stream()
 			.filter(sup -> sup.getRole() == RoleType.INVIGILATOR)
@@ -62,8 +69,13 @@ public class AssignmentEngine {
 			.filter(sup -> sup.getRole() == RoleType.FLOOR_SUPERVISOR)
 			.mapToDouble(sup -> (sup.getLoadPercentage() == null ? 100.0 : sup.getLoadPercentage()) / 100.0)
 			.sum();
+		double maintenanceLoadUnits = supervisors.stream()
+			.filter(sup -> sup.getRole() == RoleType.MAINTENANCE)
+			.mapToDouble(sup -> (sup.getLoadPercentage() == null ? 100.0 : sup.getLoadPercentage()) / 100.0)
+			.sum();
 		double basePerInvigilatorUnit = invLoadUnits == 0.0 ? 0.0 : invigilatorHoursIncludingBackups / invLoadUnits;
 		double basePerFloorUnit = floorLoadUnits == 0.0 ? 0.0 : (floorHoursNeeded * 2.0) / floorLoadUnits;
+		double basePerMaintenanceUnit = maintenanceLoadUnits == 0.0 ? 0.0 : (maintenanceHoursNeeded * 2.0) / maintenanceLoadUnits;
 		// keep a single target for logging; use invigilator target
 		result.setTargetHoursPerSupervisor(basePerInvigilatorUnit);
 
@@ -75,7 +87,14 @@ public class AssignmentEngine {
 			supervisorToTotalHours.put(sup.getName(), 0.0);
 			schedule.put(sup.getName(), new HashMap<>());
 			double units = (sup.getLoadPercentage() == null ? 1.0 : sup.getLoadPercentage() / 100.0);
-			double expected = (sup.getRole() == RoleType.FLOOR_SUPERVISOR) ? (basePerFloorUnit * units) : (basePerInvigilatorUnit * units);
+			double expected;
+			if (sup.getRole() == RoleType.FLOOR_SUPERVISOR) {
+				expected = basePerFloorUnit * units;
+			} else if (sup.getRole() == RoleType.MAINTENANCE) {
+				expected = basePerMaintenanceUnit * units;
+			} else {
+				expected = basePerInvigilatorUnit * units;
+			}
 			supervisorExpectedHours.put(sup.getName(), expected);
 		}
 
@@ -363,6 +382,12 @@ public class AssignmentEngine {
 
 	private boolean isEligible(SubjectSession s, Supervisor sup, Config config) {
 		if (sup.getRole() != s.getRequiredRole()) return false;
+		
+		// Check if supervisor is excluded from this subject
+		if (sup.getExcludedSubjects().contains(s.getSubjectName())) {
+			return false;
+		}
+		
 		return sup.getAvailableDays().contains(s.getDay());
 	}
 
@@ -428,6 +453,44 @@ public class AssignmentEngine {
 			case FRIDAY: return DayOfWeekEnum.FRIDAY;
 			default: return null;
 		}
+	}
+
+	private List<SubjectSession> createMaintenanceSlots(List<SubjectSession> sessions, List<Supervisor> supervisors) {
+		List<SubjectSession> maintenanceSlots = new ArrayList<>();
+		List<Supervisor> maintenanceStaff = supervisors.stream()
+			.filter(sup -> sup.getRole() == RoleType.MAINTENANCE)
+			.collect(Collectors.toList());
+		
+		if (maintenanceStaff.isEmpty()) {
+			return maintenanceSlots;
+		}
+		
+		// Get unique dates from sessions (excluding Friday)
+		Set<LocalDate> workingDates = sessions.stream()
+			.map(SubjectSession::getDate)
+			.filter(date -> date != null && date.getDayOfWeek() != java.time.DayOfWeek.FRIDAY)
+			.collect(Collectors.toSet());
+		
+		int maintenanceCounter = 1;
+		for (LocalDate date : workingDates) {
+			// Create one primary and one backup maintenance slot per day
+			for (int i = 0; i < 2; i++) {
+				SubjectSession maintenanceSlot = new SubjectSession();
+				maintenanceSlot.setId("M-" + (maintenanceCounter++));
+				maintenanceSlot.setSubjectName("عامل صيانة - " + date.toString());
+				maintenanceSlot.setDay(mapJavaDayToEnum(date.getDayOfWeek()));
+				maintenanceSlot.setDate(date);
+				maintenanceSlot.setFrom(LocalTime.of(8, 0)); // 8 AM to 4 PM
+				maintenanceSlot.setTo(LocalTime.of(16, 0));
+				maintenanceSlot.setSupervisorsRequired(1);
+				maintenanceSlot.setBuilding("جميع المباني");
+				maintenanceSlot.setPeriod(PeriodOfDay.MORNING);
+				maintenanceSlot.setRequiredRole(RoleType.MAINTENANCE);
+				maintenanceSlots.add(maintenanceSlot);
+			}
+		}
+		
+		return maintenanceSlots;
 	}
 }
 
